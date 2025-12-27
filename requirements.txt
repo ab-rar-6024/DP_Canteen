@@ -1,2 +1,4 @@
-flask
+Flask
+gunicorn
+pandas
 mysql-connector-python
