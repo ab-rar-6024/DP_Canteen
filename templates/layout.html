@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Department Panel</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+body{
+    background:#f4f6f9;
+}
+
+/* SIDEBAR */
+.sidebar{
+    width:260px;
+    background:#0b1c2d;
+    min-height:100vh;
+    position:fixed;
+    color:white;
+}
+
+.sidebar h4{
+    padding:15px;
+    text-align:center;
+    border-bottom:1px solid rgba(255,255,255,.2);
+}
+
+.sidebar a{
+    padding:12px 20px;
+    display:block;
+    color:#cfd8dc;
+    text-decoration:none;
+    font-weight:500;
+}
+
+.sidebar a:hover{
+    background:#102a43;
+    color:#00e5ff;
+}
+
+/* CONTENT */
+.main{
+    margin-left:260px;
+    padding:20px;
+}
+
+/* HEADER */
+.topbar{
+    background:white;
+    padding:10px 20px;
+    border-radius:8px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+    margin-bottom:20px;
+}
+
+/* FOOTER */
+.footer{
+    text-align:center;
+    color:#666;
+    padding:10px;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h4>Department Panel</h4>
+
+    <a href="/department/dashboard"><i class="fa fa-home"></i> Dashboard</a>
+
+    <a href="/department/users"><i class="fa fa-user-plus"></i> New / Delete User</a>
+
+    <a href="/department/wastage"><i class="fa fa-trash"></i> Wastage Count (KG)</a>
+
+    <a href="/department/timing"><i class="fa fa-clock"></i> Canteen Timing</a>
+
+    <a href="/department/reports"><i class="fa fa-file-alt"></i> Report</a>
+
+    <a href="/department/customs"><i class="fa fa-shield-alt"></i> Customs / Police</a>
+
+    <a href="/department/user-master"><i class="fa fa-users"></i> User Master</a>
+
+    <a href="/department/reset-password"><i class="fa fa-key"></i> Reset Password</a>
+
+    <a href="/logout" class="text-danger">
+        <i class="fa fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <!-- HEADER -->
+    <div class="topbar d-flex justify-content-between align-items-center">
+        <div><b>Smart Canteen – Department</b></div>
+        
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <!-- FOOTER -->
+    <div class="footer mt-4">
+        “If it’s not measured, it can’t be improved.”
+    </div>
+
+</div>
+
+</body>
+</html>

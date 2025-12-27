@@ -1,0 +1,85 @@
+{% extends "department/layout.html" %}
+{% block content %}
+
+<div class="card p-4 shadow-sm" style="max-width:500px;margin:auto;">
+<h5 class="text-center mb-3">Food Booking</h5>
+
+<form method="POST">
+
+<!-- TYPE -->
+<div class="text-center mb-3">
+    <label class="me-3">
+        <input type="radio" name="type" value="Guest" checked onclick="toggleType()"> Guest
+    </label>
+    <label>
+        <input type="radio" name="type" value="Intern" onclick="toggleType()"> Intern
+    </label>
+</div>
+
+<div class="mb-3">
+    <label>Department</label>
+    <select name="department" class="form-control" required>
+        <option>IT</option>
+        <option>HR</option>
+        <option>Finance</option>
+    </select>
+</div>
+
+<div class="mb-3">
+    <label>Name</label>
+    <input name="name" class="form-control" required>
+</div>
+
+<!-- PERSON TO MEET (GUEST ONLY) -->
+<div class="mb-3" id="personMeet">
+    <label>Person To Meet</label>
+    <input name="person_to_meet" class="form-control">
+</div>
+
+<!-- INTERN DATE RANGE -->
+<div id="internDates" style="display:none;">
+    <div class="mb-3">
+        <label>From Date</label>
+        <input type="date" name="from_date" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label>To Date</label>
+        <input type="date" name="to_date" class="form-control">
+    </div>
+</div>
+
+<div class="mb-3">
+    <label>No Of Persons</label>
+    <input type="number" name="persons" class="form-control" required>
+</div>
+
+<div class="mb-3">
+    <label>Company Name</label>
+    <input name="company" class="form-control">
+</div>
+
+<div class="text-center">
+    <button class="btn btn-success px-4">Book</button>
+</div>
+
+</form>
+
+{% if message %}
+<div class="alert alert-success text-center mt-3">
+    {{ message }}
+</div>
+{% endif %}
+
+</div>
+
+<script>
+function toggleType(){
+    const type = document.querySelector('input[name="type"]:checked').value;
+    document.getElementById("personMeet").style.display =
+        type === "Guest" ? "block" : "none";
+    document.getElementById("internDates").style.display =
+        type === "Intern" ? "block" : "none";
+}
+</script>
+
+{% endblock %}

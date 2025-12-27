@@ -1,0 +1,60 @@
+{% extends "department/layout.html" %}
+{% block content %}
+
+<div class="card p-4 shadow-sm" style="max-width:500px;margin:auto;">
+<h5 class="mb-3">Wastage (Kg)</h5>
+
+{% if message %}
+<div class="alert alert-success text-center">{{ message }}</div>
+{% endif %}
+
+<form method="POST">
+
+<div class="row mb-3">
+    <div class="col">Menu</div>
+    <div class="col fw-bold">Wastage Count (Kg)</div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">BreakFast</div>
+    <div class="col">
+        <input type="number" step="0.01" name="breakfast" class="form-control">
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Lunch</div>
+    <div class="col">
+        <input type="number" step="0.01" name="lunch" class="form-control">
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Snacks</div>
+    <div class="col">
+        <input type="number" step="0.01" name="snacks" class="form-control">
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Dinner</div>
+    <div class="col">
+        <input type="number" step="0.01" name="dinner" class="form-control">
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">Supper</div>
+    <div class="col">
+        <input type="number" step="0.01" name="supper" class="form-control">
+    </div>
+</div>
+
+<div class="text-center">
+    <button class="btn btn-success px-4">Save</button>
+</div>
+
+</form>
+</div>
+
+{% endblock %}

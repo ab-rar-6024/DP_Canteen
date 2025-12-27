@@ -1,0 +1,67 @@
+{% extends "department/layout.html" %}
+{% block content %}
+
+<div class="card p-4 shadow-sm" style="max-width:500px;margin:auto;">
+<h5 class="text-center mb-3">Canteen Timing</h5>
+
+{% if message %}
+<div class="alert alert-success text-center">{{ message }}</div>
+{% endif %}
+
+<form method="POST">
+
+<!-- EMP CODE -->
+<div class="mb-3">
+    <label class="form-label">Employee Code</label>
+    <input name="emp_code" class="form-control" placeholder="Enter Employee Code" required>
+</div>
+
+<!-- MEAL -->
+<div class="mb-3">
+    <label class="form-label">Meal</label>
+    <select name="meal" class="form-control" required>
+        <option value="">Select Meal</option>
+        <option>Breakfast</option>
+        <option>Lunch</option>
+        <option>Snacks</option>
+        <option>Dinner</option>
+        <option>Supper</option>
+    </select>
+</div>
+
+<!-- START TIME -->
+<div class="mb-3">
+    <label class="form-label">Select Start Time</label>
+    <select name="start_time" class="form-control" required>
+        {% for h in range(0,24) %}
+            {% for m in [0,30] %}
+                <option value="{{ '%02d:%02d'|format(h,m) }}">
+                    {{ '%02d:%02d'|format(h,m) }}
+                </option>
+            {% endfor %}
+        {% endfor %}
+    </select>
+</div>
+
+<!-- END TIME -->
+<div class="mb-4">
+    <label class="form-label">Select End Time</label>
+    <select name="end_time" class="form-control" required>
+        {% for h in range(0,24) %}
+            {% for m in [0,30] %}
+                <option value="{{ '%02d:%02d'|format(h,m) }}">
+                    {{ '%02d:%02d'|format(h,m) }}
+                </option>
+            {% endfor %}
+        {% endfor %}
+    </select>
+</div>
+
+<div class="text-center">
+    <button class="btn btn-success px-4">Save</button>
+</div>
+
+</form>
+</div>
+
+{% endblock %}

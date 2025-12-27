@@ -1,0 +1,36 @@
+{% extends "department/layout.html" %}
+{% block content %}
+
+<div class="card p-4 shadow-sm" style="max-width:450px;margin:auto;">
+<h5 class="text-center mb-3">New User Master</h5>
+
+<form method="POST">
+
+<div class="mb-3">
+    <label>User Name</label>
+    <input name="username" class="form-control" required>
+</div>
+
+<div class="mb-3">
+    <label>User Group</label>
+    <select name="role" class="form-control" required>
+        <option value="department">Department (IT / HR / Finance)</option>
+        <option value="canteen">Canteen</option>
+    </select>
+</div>
+
+<div class="text-center">
+    <button class="btn btn-success px-4">Save</button>
+</div>
+
+</form>
+
+{% if password %}
+<div class="alert alert-info text-center mt-3">
+    Generated Password: <b>{{ password }}</b>
+</div>
+{% endif %}
+
+</div>
+
+{% endblock %}

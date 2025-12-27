@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Canteen Order</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+body{
+    background:#f2f4f7;
+}
+
+/* LEFT PANEL */
+.emp-card{
+    background:#ffffff;
+    border-radius:12px;
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+}
+
+/* FOOD CARD */
+.food-card{
+    border-radius:14px;
+    transition:.2s;
+    cursor:pointer;
+}
+
+.food-card:hover{
+    transform:scale(1.04);
+    box-shadow:0 12px 25px rgba(0,0,0,.2);
+}
+
+.food-card img{
+    height:160px;
+    object-fit:cover;
+}
+
+/* ORDER BTN */
+.order-btn{
+    background:#e63946;
+    border:none;
+    font-weight:600;
+}
+
+/* HEADER BAR */
+.top-bar{
+    background:#0b1c2d;
+    color:#00e5ff;
+    padding:12px 20px;
+    font-size:18px;
+    font-weight:700;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <i class="fa fa-utensils"></i> CANTEEN ORDER PANEL
+</div>
+
+<div class="container-fluid mt-4">
+<div class="row g-4">
+
+<!-- EMPLOYEE INFO -->
+<div class="col-md-3">
+<div class="emp-card p-3 text-center">
+
+    <img src="/static/img/employees/{{ emp_photo }}"
+         class="img-fluid rounded mb-3">
+
+    <h6 class="mb-0">Employee</h6>
+    <b>{{ emp_name }}</b>
+
+    <hr>
+
+    <h6 class="text-start">Meal Timings</h6>
+
+    {% if timings %}
+        {% for t in timings %}
+            <p class="mb-2 text-start">
+                <b>{{ t.meal_type }}</b><br>
+                <span class="text-muted">
+                    {{ t.start_time }} – {{ t.end_time }}
+                </span>
+            </p>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted text-start">No timing assigned</p>
+    {% endif %}
+
+</div>
+</div>
+
+
+
+<!-- FOOD MENU -->
+<div class="col-md-9">
+<div class="row g-4">
+
+{% for item in [
+('Lunch Without Egg','Lunch'),
+('Lunch With Egg','Lunch'),
+('Sweet','Snacks'),
+('Egg Only','Lunch')
+] %}
+<div class="col-md-3">
+
+<form method="POST">
+<input type="hidden" name="item" value="{{ item[0] }}">
+<input type="hidden" name="meal" value="{{ item[1] }}">
+
+<div class="card food-card text-center">
+    <img src="/static/img/food.png"
+         onerror="this.src='https://via.placeholder.com/300x160?text=Food'"
+         class="card-img-top">
+
+    <div class="card-body">
+        <h6 class="fw-bold">{{ item[0] }}</h6>
+        <button class="btn order-btn w-100 mt-2">
+            <i class="fa fa-check"></i> Order
+        </button>
+    </div>
+</div>
+</form>
+
+</div>
+{% endfor %}
+
+</div>
+</div>
+
+</div>
+</div>
+
+</body>
+</html>

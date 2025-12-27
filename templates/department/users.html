@@ -1,0 +1,138 @@
+{% extends "department/layout.html" %}
+{% block content %}
+
+{% if message %}
+<div class="alert alert-success text-center">
+    {{ message }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-danger text-center">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if generated_pin %}
+<div class="alert alert-info text-center">
+    <b>Generated RFID / PIN:</b>
+    <span style="font-size:22px;letter-spacing:3px;">
+        {{ generated_pin }}
+    </span>
+    <br>
+    <small>Use this PIN in the canteen keypad</small>
+</div>
+{% endif %}
+
+<!-- NEW USER -->
+<div class="card p-4 shadow-sm" style="max-width:600px;margin:auto;">
+<h4 class="text-center mb-4">New User</h4>
+
+<form method="POST">
+<input type="hidden" name="action" value="add">
+
+<div class="row mb-3">
+    <div class="col">Employee Code</div>
+    <div class="col"><input name="emp_code" class="form-control" required></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Employee Name</div>
+    <div class="col"><input name="emp_name" class="form-control" required></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">DOB</div>
+    <div class="col"><input type="date" name="dob" class="form-control"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">DOJ</div>
+    <div class="col"><input type="date" name="doj" class="form-control"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Department</div>
+    <div class="col">
+        <select name="department" class="form-control">
+            <option>Operations</option>
+            <option>Admin</option>
+            <option>Security</option>
+        </select>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Designation</div>
+    <div class="col"><input name="designation" class="form-control"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Reporting To</div>
+    <div class="col"><input name="reporting_to" class="form-control"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Access</div>
+    <div class="col">
+        <select name="access" class="form-control">
+            <option>Yes</option>
+            <option>No</option>
+        </select>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Shift</div>
+    <div class="col">
+        <select name="shift" class="form-control">
+            <option>Morning</option>
+            <option>General</option>
+            <option>Night</option>
+        </select>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">Company</div>
+    <div class="col"><input name="company" class="form-control"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">RFID / PIN</div>
+    <div class="col">
+        <input class="form-control" value="Auto Generated" disabled>
+    </div>
+</div>
+
+<div class="text-center">
+    <button class="btn btn-success px-4">Save</button>
+</div>
+
+</form>
+</div>
+
+<!-- DELETE USER -->
+<div class="card p-4 shadow-sm mt-4" style="max-width:600px;margin:auto;">
+<h5 class="text-center">Delete User</h5>
+
+<form method="POST"
+      onsubmit="return confirm('This will permanently delete the employee. Continue?')">
+
+<input type="hidden" name="action" value="delete">
+
+<div class="row mb-3">
+    <div class="col">Employee Code</div>
+    <div class="col">
+        <input name="emp_code" class="form-control" required>
+    </div>
+</div>
+
+<div class="text-center">
+    <button class="btn btn-danger px-4">Delete</button>
+</div>
+
+</form>
+</div>
+
+{% endblock %}

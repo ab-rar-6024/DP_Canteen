@@ -1,0 +1,89 @@
+{% extends "department/layout.html" %}
+{% block content %}
+
+<div class="card p-3 shadow-sm">
+
+<form method="POST" class="row g-2 align-items-end">
+
+    <div class="col-md-2">
+        <label>From Date</label>
+        <input type="date" name="from_date" class="form-control" required>
+    </div>
+
+    <div class="col-md-2">
+        <label>To Date</label>
+        <input type="date" name="to_date" class="form-control" required>
+    </div>
+
+    <div class="col-md-2">
+        <label>Department</label>
+        <select name="department" class="form-control">
+            <option value="">All</option>
+            <option>Finance</option>
+            <option>IT</option>
+            <option>HR</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label>Company</label>
+        <select name="company" class="form-control">
+            <option value="">All</option>
+            <option>DP World</option>
+            <option>Apollo</option>
+            <option>AVR</option>
+            <option>Parveen Travels</option>
+            <option>CEO Driver</option>
+        </select>
+    </div>
+
+    <div class="col-md-1">
+        <button name="action" value="search" class="btn btn-primary w-100">
+            Search
+        </button>
+    </div>
+
+    <div class="col-md-2">
+        <button name="action" value="export" class="btn btn-success w-100">
+            Export to Excel
+        </button>
+    </div>
+
+</form>
+
+</div>
+
+{% if results %}
+<div class="card mt-4 p-3 shadow-sm">
+<h6>Report Results</h6>
+
+<table class="table table-bordered table-sm mt-2">
+<thead class="table-light">
+<tr>
+    <th>Emp Code</th>
+    <th>Name</th>
+    <th>Department</th>
+    <th>Company</th>
+    <th>Meal</th>
+    <th>Item</th>
+    <th>Order Time</th>
+</tr>
+</thead>
+<tbody>
+{% for r in results %}
+<tr>
+    <td>{{ r.emp_code }}</td>
+    <td>{{ r.emp_name }}</td>
+    <td>{{ r.department }}</td>
+    <td>{{ r.company }}</td>
+    <td>{{ r.meal_type }}</td>
+    <td>{{ r.item }}</td>
+    <td>{{ r.order_time }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+{% endblock %}
