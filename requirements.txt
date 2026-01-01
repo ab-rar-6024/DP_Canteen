@@ -2,5 +2,3 @@ Flask
 gunicorn
 psycopg2-binary
 pandas
-psycopg2
-os
