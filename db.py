@@ -7,6 +7,7 @@ def get_db_connection():
         database=os.environ["DB_NAME"],
         user=os.environ["DB_USER"],
         password=os.environ["DB_PASSWORD"],
-        port=os.environ["DB_PORT"],
-        sslmode="require"   # 🔥 THIS IS THE FIX
+        port=int(os.environ["DB_PORT"]),
+        sslmode="require",
+        connect_timeout=10
     )
