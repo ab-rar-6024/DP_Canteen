@@ -1,9 +1,7 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, send_file
 from db import get_db_connection
 import random
 import string
-from datetime import date
-from flask import send_file
 import pandas as pd
 import io
 import psycopg2.extras
@@ -14,7 +12,6 @@ app.secret_key = "supersecretkey"
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
-    # clear any previous session
     session.clear()
 
     if request.method == "POST":
@@ -29,28 +26,22 @@ def login():
             FROM users
             WHERE username=%s
               AND password=%s
-              AND status=1
+              AND status = TRUE
         """, (username, password))
 
         user = cur.fetchone()
 
         if user:
-            session['user'] = user['username']
-            session['role'] = user['role']
+            session["user"] = user["username"]
+            session["role"] = user["role"]
 
-            # ROLE BASED REDIRECT
-            if user['role'] == "canteen":
+            if user["role"] == "canteen":
                 return redirect("/canteen/home")
-            else:  # department (default)
-                return redirect("/department/dashboard")
+            return redirect("/department/dashboard")
 
-        return render_template(
-            "login.html",
-            error="Invalid username or password"
-        )
+        return render_template("login.html", error="Invalid username or password")
 
     return render_template("login.html")
-
 
 
 # ---------------- LOGOUT ----------------
@@ -67,8 +58,8 @@ def dept_dashboard():
         return redirect("/")
     return render_template("department/dashboard.html")
 
-# ---------- NEW / DELETE USER ----------
 
+# ---------- USERS ----------
 @app.route("/department/users", methods=["GET", "POST"])
 def department_users():
     if session.get("role") != "department":
@@ -77,129 +68,80 @@ def department_users():
     db = get_db_connection()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    generated_pin = None
-    message = None
-    error = None
+    generated_pin = message = error = None
 
     if request.method == "POST":
         action = request.form.get("action")
 
-        # ---------- ADD USER ----------
         if action == "add":
-            import random
             generated_pin = str(random.randint(1000, 9999))
-
             try:
                 cur.execute("""
                     INSERT INTO employees
                     (emp_code, emp_name, dob, doj, department, designation,
                      reporting_to, access_status, shift_name, company,
                      rfid_pin, active)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,TRUE)
                 """, (
-                    request.form['emp_code'].strip(),
-                    request.form['emp_name'],
-                    request.form['dob'],
-                    request.form['doj'],
-                    request.form['department'],
-                    request.form['designation'],
-                    request.form['reporting_to'],
-                    request.form['access'],
-                    request.form['shift'],
-                    request.form['company'],
+                    request.form["emp_code"].strip(),
+                    request.form["emp_name"],
+                    request.form["dob"],
+                    request.form["doj"],
+                    request.form["department"],
+                    request.form["designation"],
+                    request.form["reporting_to"],
+                    request.form["access"],
+                    request.form["shift"],
+                    request.form["company"],
                     generated_pin
                 ))
                 db.commit()
                 message = "User created successfully"
-
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 error = "Employee Code already exists"
 
-        # ---------- DELETE USER (HARD DELETE) ----------
         elif action == "delete":
-            emp_code = request.form['emp_code'].strip()
+            emp_code = request.form["emp_code"].strip()
+            cur.execute("DELETE FROM employees WHERE emp_code=%s", (emp_code,))
+            db.commit()
+            message = f"Employee {emp_code} deleted"
 
-            cur.execute(
-                "SELECT emp_code FROM employees WHERE emp_code=%s",
-                (emp_code,)
-            )
-            emp = cur.fetchone()
+    return render_template("department/users.html",
+                           generated_pin=generated_pin,
+                           message=message,
+                           error=error)
 
-            if emp:
-                cur.execute(
-                    "DELETE FROM employees WHERE emp_code=%s",
-                    (emp_code,)
-                )
-                db.commit()
-                message = f"Employee {emp_code} deleted successfully"
-            else:
-                error = "Employee code not found"
 
-    return render_template(
-        "department/users.html",
-        generated_pin=generated_pin,
-        message=message,
-        error=error
-    )
-
-# ---------- WASTAGE COUNT ----------
-
+# ---------- WASTAGE ----------
 @app.route("/department/wastage", methods=["GET", "POST"])
 def department_wastage():
     if session.get("role") != "department":
         return redirect("/")
 
-    message = None
     db = get_db_connection()
     cur = db.cursor()
+    message = None
 
     if request.method == "POST":
         cur.execute("""
             INSERT INTO wastage
             (waste_date, breakfast, lunch, snacks, dinner, supper)
-            VALUES (CURDATE(), %s, %s, %s, %s, %s)
+            VALUES (CURRENT_DATE, %s,%s,%s,%s,%s)
         """, (
-            request.form['breakfast'] or 0,
-            request.form['lunch'] or 0,
-            request.form['snacks'] or 0,
-            request.form['dinner'] or 0,
-            request.form['supper'] or 0
+            request.form["breakfast"] or 0,
+            request.form["lunch"] or 0,
+            request.form["snacks"] or 0,
+            request.form["dinner"] or 0,
+            request.form["supper"] or 0
         ))
         db.commit()
-        message = "Wastage saved successfully"
+        message = "Wastage saved"
 
     return render_template("department/wastage.html", message=message)
 
-# ---------- CANTEEN TIMING ----------
-
-@app.route("/department/timing", methods=["GET", "POST"])
-def department_timing():
-    if session.get("role") != "department":
-        return redirect("/")
-
-    message = None
-    db = get_db_connection()
-    cur = db.cursor()
-
-    if request.method == "POST":
-        cur.execute("""
-            INSERT INTO canteen_timing
-            (emp_code, meal_type, start_time, end_time)
-            VALUES (%s, %s, %s, %s)
-        """, (
-            request.form['emp_code'],
-            request.form['meal'],
-            request.form['start_time'],
-            request.form['end_time']
-        ))
-        db.commit()
-        message = "Canteen timing saved successfully"
-
-    return render_template("department/timing.html", message=message)
 
 # ---------- REPORTS ----------
-
 @app.route("/department/reports", methods=["GET", "POST"])
 def department_reports():
     if session.get("role") != "department":
@@ -211,11 +153,11 @@ def department_reports():
     results = []
 
     if request.method == "POST":
-        from_date = request.form['from_date']
-        to_date = request.form['to_date']
-        department = request.form['department']
-        company = request.form['company']
-        action = request.form['action']
+        from_date = request.form["from_date"]
+        to_date = request.form["to_date"]
+        department = request.form["department"]
+        company = request.form["company"]
+        action = request.form["action"]
 
         query = """
             SELECT o.emp_code, o.emp_name, o.item, o.meal_type,
@@ -237,50 +179,29 @@ def department_reports():
         cur.execute(query, tuple(params))
         results = cur.fetchall()
 
-        # ---------- EXPORT TO EXCEL ----------
         if action == "export":
             df = pd.DataFrame(results)
             output = io.BytesIO()
             df.to_excel(output, index=False)
             output.seek(0)
-
-            return send_file(
-                output,
-                download_name="canteen_report.xlsx",
-                as_attachment=True
-            )
+            return send_file(output,
+                             download_name="canteen_report.xlsx",
+                             as_attachment=True)
 
     return render_template("department/reports.html", results=results)
 
-# ---------- FOOD BOOKING ----------
 
+# ---------- FOOD BOOKING ----------
 @app.route("/department/customs", methods=["GET", "POST"])
 def department_custom():
     if session.get("role") != "department":
         return redirect("/")
 
-    message = None
-    otp = None
+    message = otp = None
 
     if request.method == "POST":
-        booking_type = request.form['type']
+        booking_type = request.form["type"]
         otp = str(random.randint(1000, 9999))
-
-        department = request.form['department']
-        name = request.form['name']
-        persons = request.form['persons']
-        company = request.form['company']
-
-        # INTERN DATES
-        from_date = request.form.get('from_date')
-        to_date = request.form.get('to_date')
-
-        # PERSON TO MEET ONLY FOR GUEST
-        person_to_meet = (
-            request.form['person_to_meet']
-            if booking_type == "Guest"
-            else None
-        )
 
         db = get_db_connection()
         cur = db.cursor()
@@ -292,14 +213,14 @@ def department_custom():
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """, (
             booking_type,
-            department,
-            name,
-            person_to_meet,
-            persons,
-            company,
+            request.form["department"],
+            request.form["name"],
+            request.form.get("person_to_meet"),
+            request.form["persons"],
+            request.form["company"],
             otp,
-            from_date,
-            to_date
+            request.form.get("from_date"),
+            request.form.get("to_date")
         ))
         db.commit()
 
@@ -307,8 +228,8 @@ def department_custom():
 
     return render_template("department/customs.html", message=message)
 
-# ---------- USER MASTER ----------
 
+# ---------- USER MASTER ----------
 @app.route("/department/user-master", methods=["GET", "POST"])
 def user_master():
     if session.get("role") != "department":
@@ -317,47 +238,35 @@ def user_master():
     generated_password = None
 
     if request.method == "POST":
-        username = request.form['username']
-        role = request.form['role']
-
-        # auto password
         generated_password = ''.join(
             random.choices(string.ascii_letters + string.digits, k=8)
         )
 
         db = get_db_connection()
         cur = db.cursor()
-
         cur.execute("""
             INSERT INTO users (username, password, role, status)
-            VALUES (%s,%s,%s,1)
-        """, (username, generated_password, role))
-
+            VALUES (%s,%s,%s,TRUE)
+        """, (
+            request.form["username"],
+            generated_password,
+            request.form["role"]
+        ))
         db.commit()
 
-    return render_template(
-        "department/user_master.html",
-        password=generated_password
-    )
+    return render_template("department/user_master.html",
+                           password=generated_password)
 
-@app.route("/department/get-users/<department>")
-def get_users_by_department(department):
+
+@app.route("/department/get-users")
+def get_users():
     if session.get("role") != "department":
         return {"error": "Unauthorized"}, 403
 
     db = get_db_connection()
-    cur = db.cursor(dictionary=True)
-
-    cur.execute("""
-        SELECT id, username, password
-        FROM users
-        WHERE department=%s
-          AND status=1
-        ORDER BY username
-    """, (department,))
-
-    users = cur.fetchall()
-    return users
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT id, username, password FROM users WHERE status = TRUE")
+    return cur.fetchall()
 
 
 @app.route("/department/update-password", methods=["POST"])
@@ -365,38 +274,23 @@ def update_password():
     if session.get("role") != "department":
         return {"error": "Unauthorized"}, 403
 
-    user_id = request.form.get("user_id")
-    new_password = request.form.get("new_password")
-
-    if not user_id or not new_password:
-        return {"error": "Missing data"}, 400
-
     db = get_db_connection()
     cur = db.cursor()
-
-    cur.execute("""
-        UPDATE users
-        SET password=%s
-        WHERE id=%s
-    """, (new_password, user_id))
-
+    cur.execute("UPDATE users SET password=%s WHERE id=%s",
+                (request.form["new_password"], request.form["user_id"]))
     db.commit()
     return {"success": True}
 
 
 # ---------- RESET PASSWORD ----------
-
 @app.route("/department/reset-password")
 def reset_password():
     if session.get("role") != "department":
         return redirect("/")
-
     return render_template("department/reset_password.html")
 
 
-
 # ================== CANTEEN ==================
-# ---------------- CANTEEN HOME (PIN PAGE) ----------------
 @app.route("/canteen/home", methods=["GET", "POST"])
 def canteen_home():
     if session.get("role") != "canteen":
@@ -405,15 +299,13 @@ def canteen_home():
     db = get_db_connection()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # -------- CURRENT MENU --------
-    cur.execute("SELECT * FROM menu_items WHERE active=1")
+    cur.execute("SELECT * FROM menu_items WHERE active = TRUE")
     menu = cur.fetchall()
 
-    # -------- WASTAGE (TODAY → FALLBACK YESTERDAY) --------
     cur.execute("""
         SELECT breakfast, lunch, snacks, dinner, supper
         FROM wastage
-        WHERE waste_date = CURDATE()
+        WHERE waste_date = CURRENT_DATE
         LIMIT 1
     """)
     wastage = cur.fetchone()
@@ -422,30 +314,16 @@ def canteen_home():
         cur.execute("""
             SELECT breakfast, lunch, snacks, dinner, supper
             FROM wastage
-            WHERE waste_date = CURDATE() - INTERVAL 1 DAY
+            WHERE waste_date = CURRENT_DATE - INTERVAL '1 day'
             LIMIT 1
         """)
         wastage = cur.fetchone()
 
-    # If still no wastage data
     if not wastage:
-        wastage = {
-            "breakfast": 0,
-            "lunch": 0,
-            "snacks": 0,
-            "dinner": 0,
-            "supper": 0
-        }
+        wastage = dict(breakfast=0, lunch=0, snacks=0, dinner=0, supper=0)
 
-    wastage["total"] = (
-        wastage["breakfast"] +
-        wastage["lunch"] +
-        wastage["snacks"] +
-        wastage["dinner"] +
-        wastage["supper"]
-    )
+    wastage["total"] = sum(wastage.values())
 
-    # -------- LAST 7 ORDERS --------
     cur.execute("""
         SELECT emp_name, item
         FROM orders
@@ -454,49 +332,39 @@ def canteen_home():
     """)
     orders = cur.fetchall()
 
-    # -------- PIN / OTP LOGIN --------
     if request.method == "POST":
         pin = request.form['pin']
 
-        # ---- EMPLOYEE PIN CHECK ----
         cur.execute("""
             SELECT emp_code, emp_name, photo
             FROM employees
             WHERE rfid_pin=%s
-              AND active=1
+              AND active = TRUE
               AND access_status='Yes'
         """, (pin,))
         emp = cur.fetchone()
 
         if emp:
-            session['emp_code'] = emp['emp_code']
-            session['emp_name'] = emp['emp_name']
-            session['emp_photo'] = emp['photo']
+            session.update(emp)
             return redirect("/canteen/order")
 
-        # ---- GUEST / CUSTOM OTP CHECK ----
         cur.execute("""
             SELECT id, name
             FROM guest_bookings
             WHERE otp=%s
-              AND used=0
+              AND used = FALSE
         """, (pin,))
         guest = cur.fetchone()
 
         if guest:
-            # mark OTP as used
-            cur.execute(
-                "UPDATE guest_bookings SET used=1 WHERE id=%s",
-                (guest['id'],)
-            )
+            cur.execute("UPDATE guest_bookings SET used=TRUE WHERE id=%s",
+                        (guest['id'],))
             db.commit()
 
             session['emp_code'] = "GUEST"
             session['emp_name'] = guest['name']
-            session['emp_photo'] = "default.jpg"
             return redirect("/canteen/order")
 
-        # ---- INVALID PIN / OTP ----
         return render_template(
             "canteen/home.html",
             error="Invalid PIN",
@@ -505,7 +373,6 @@ def canteen_home():
             orders=orders
         )
 
-    # -------- INITIAL PAGE LOAD --------
     return render_template(
         "canteen/home.html",
         menu=menu,
@@ -514,7 +381,7 @@ def canteen_home():
     )
 
 
-# ---------------- ORDER PAGE (AFTER PIN) ----------------
+# ---------------- ORDER PAGE ----------------
 @app.route("/canteen/order", methods=["GET", "POST"])
 def canteen_order():
     if "emp_code" not in session:
@@ -523,32 +390,21 @@ def canteen_order():
     db = get_db_connection()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # ---- FETCH EMPLOYEE MEAL TIMINGS ----
     cur.execute("""
         SELECT meal_type, start_time, end_time
         FROM canteen_timing
-        WHERE emp_code = %s
-        ORDER BY FIELD(meal_type,
-            'Breakfast','Lunch','Snacks','Dinner','Supper')
+        WHERE emp_code=%s
+        ORDER BY
+          CASE meal_type
+            WHEN 'Breakfast' THEN 1
+            WHEN 'Lunch' THEN 2
+            WHEN 'Snacks' THEN 3
+            WHEN 'Dinner' THEN 4
+            ELSE 5
+          END
     """, (session['emp_code'],))
-    timings_raw = cur.fetchall()
+    timings = cur.fetchall()
 
-    # ---- CONVERT timedelta → HH:MM ----
-    timings = []
-    for t in timings_raw:
-        def fmt(td):
-            total_seconds = int(td.total_seconds())
-            h = total_seconds // 3600
-            m = (total_seconds % 3600) // 60
-            return f"{h:02d}:{m:02d}"
-
-        timings.append({
-            "meal_type": t["meal_type"],
-            "start_time": fmt(t["start_time"]),
-            "end_time": fmt(t["end_time"])
-        })
-
-    # ---- SAVE ORDER ----
     if request.method == "POST":
         cur.execute("""
             INSERT INTO orders (emp_code, emp_name, item, meal_type)
@@ -560,21 +416,14 @@ def canteen_order():
             request.form['meal']
         ))
         db.commit()
-
-        # auto logout
-        session.pop("emp_code", None)
-        session.pop("emp_name", None)
-        session.pop("emp_photo", None)
-
+        session.clear()
         return render_template("canteen/success.html")
 
     return render_template(
         "canteen/order.html",
         emp_name=session['emp_name'],
-        emp_photo=session['emp_photo'],
         timings=timings
     )
-
 
 
 @app.route("/api/last-orders")
