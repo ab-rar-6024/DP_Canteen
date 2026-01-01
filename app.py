@@ -6,7 +6,7 @@ from datetime import date
 from flask import send_file
 import pandas as pd
 import io
-
+import psycopg2.extras
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -22,7 +22,7 @@ def login():
         password = request.form.get("password")
 
         db = get_db_connection()
-        cur = db.cursor(dictionary=True)
+        cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         cur.execute("""
             SELECT username, role
@@ -75,7 +75,7 @@ def department_users():
         return redirect("/")
 
     db = get_db_connection()
-    cur = db.cursor(dictionary=True)
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     generated_pin = None
     message = None
@@ -206,7 +206,7 @@ def department_reports():
         return redirect("/")
 
     db = get_db_connection()
-    cur = db.cursor(dictionary=True)
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     results = []
 
@@ -403,7 +403,7 @@ def canteen_home():
         return redirect("/")
 
     db = get_db_connection()
-    cur = db.cursor(dictionary=True)
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # -------- CURRENT MENU --------
     cur.execute("SELECT * FROM menu_items WHERE active=1")
@@ -521,7 +521,7 @@ def canteen_order():
         return redirect("/canteen/home")
 
     db = get_db_connection()
-    cur = db.cursor(dictionary=True)
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # ---- FETCH EMPLOYEE MEAL TIMINGS ----
     cur.execute("""
@@ -580,7 +580,7 @@ def canteen_order():
 @app.route("/api/last-orders")
 def last_orders():
     db = get_db_connection()
-    cur = db.cursor(dictionary=True)
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute("""
         SELECT emp_name, item
